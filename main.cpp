@@ -85,6 +85,25 @@ int main() {
   {
     SwissTable<double> table;
 
+    auto it1 = table.insert(10.0);
+    auto it2 = table.insert(20.0);
+    auto it3 = table.insert(30.0);
+
+    assert(table.find(20.0) != table.end());
+
+    // erase middle element
+    table.erase(20.0);
+
+    assert(table.find(20.0) == table.end());
+    assert(table.find(10.0) != table.end());
+    assert(table.find(30.0) != table.end());
+
+    std::cout << "erase by value test passed\n";
+  }
+
+  {
+    SwissTable<double> table;
+
     table.insert(1.0);
     table.insert(2.0);
     table.insert(3.0);

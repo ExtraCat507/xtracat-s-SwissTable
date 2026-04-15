@@ -204,6 +204,13 @@ public:
     it.ptr->~T();
   }
 
+  void erase(T value) {
+    iterator it = find(value);
+    if (it != end()) {
+      erase(it);
+    }
+  }
+
   void grow() {
     // double the size of the backing array, rehash everything and store again.
 
