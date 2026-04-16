@@ -266,5 +266,74 @@ int main() {
     std::cout << "test_iteration_deref passed\n";
   }
 
+  {
+    SwissTable<std::string> table;
+
+    table.insert("hello");
+    table.insert("world");
+    table.insert("test");
+
+    assert(table.find("hello") != table.end());
+    assert(table.find("world") != table.end());
+    assert(table.find("test") != table.end());
+    assert(table.find("not_found") == table.end());
+
+    std::cout << "test_strings_basic passed\n";
+  }
+
+  {
+    SwissTable<std::string> table;
+
+    table.insert("a");
+    table.insert("b");
+    table.insert("c");
+
+    std::vector<std::string> seen;
+
+    for (auto it = table.begin(); it != table.end(); ++it) {
+      seen.push_back(*it);
+    }
+
+    std::sort(seen.begin(), seen.end());
+
+    assert(seen == std::vector<std::string>({"a", "b", "c"}));
+
+    std::cout << "test_strings_iteration passed\n";
+  }
+
+  {
+    SwissTable<std::string> table;
+
+    table.insert("one");
+    table.insert("two");
+    table.insert("three");
+
+    auto it = table.find("two");
+    assert(it != table.end());
+
+    table.erase(it);
+
+    assert(table.find("two") == table.end());
+    assert(table.find("one") != table.end());
+    assert(table.find("three") != table.end());
+
+    std::cout << "test_strings_erase passed\n";
+  }
+
+  {
+    SwissTable<std::string> table;
+
+    table.insert("abc");
+    table.erase(table.find("abc"));
+
+    assert(table.find("abc") == table.end());
+
+    table.insert("abc");
+
+    assert(table.find("abc") != table.end());
+
+    std::cout << "test_strings_reinsert passed\n";
+  }
+
   return 0;
 }
