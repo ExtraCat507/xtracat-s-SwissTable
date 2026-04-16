@@ -7,6 +7,7 @@
 #include <functional>
 #include <iostream>
 #include <iterator>
+#include <locale>
 #include <memory>
 #include <new>
 #include <ostream>
@@ -100,12 +101,31 @@ public:
     size = 0;
     groups = 2;  // 2 groups on the start so AND op. in find() will reference either to 0 or 1 group
     // groups is always a power of 2
-    size_t total_size = align_up(capacity() * sizeof(uint8_t), alignof(T)) + capacity() * sizeof(T);
+    size_t total_size = align_up(capacity() * sizeof(ctrl_t), alignof(T)) + capacity() * sizeof(T);
     buffer = operator new(total_size);
 
-    slots = static_cast<char*>(buffer) + align_up(capacity() * sizeof(uint8_t), alignof(T));
+    slots = static_cast<char*>(buffer) + align_up(capacity() * sizeof(ctrl_t), alignof(T));
 
     std::memset(buffer, static_cast<int8_t>(ctrl_t::kEmpty), capacity());
+  }
+
+  ~SwissTable() {
+    clear();
+    operator delete(buffer);
+  }
+
+  void clear() {
+    auto ctrl_ptr = ctrl_();
+    auto slot_ptr = slot_();
+
+    for (int i = 0; i < capacity(); ++i) {
+      if ((int8_t)ctrl_ptr[i] >= 0) {
+        slot_ptr[i].~T();
+      }
+    }
+
+    std::memset(ctrl_ptr, static_cast<int8_t>(ctrl_t::kEmpty), capacity());
+    size = 0;
   }
 
   size_t capacity() const {
@@ -184,7 +204,8 @@ public:
     }
 
     int i = __builtin_ctz(mask);
-    slot_()[group * 16 + i] = value;
+    // slot_()[group * 16 + i] = value;
+    new (slot_() + group * 16 + i) T(value);
     static_cast<int8_t*>(buffer)[group * 16 + i] = (int8_t)h2;
 
     size++;
@@ -199,7 +220,7 @@ public:
     size_t group = index / 16;
     size_t offset = index % 16;
 
-    Group g{group * 16 + ctrl_()};
+    Group g{ctrl_() + group * 16};
     ctrl_()[group * 16 + offset] = g.MaskEmpty() ? ctrl_t::kEmpty : ctrl_t::kDeleted;
     it.ptr->~T();
   }
@@ -223,16 +244,18 @@ public:
     auto* old_ctrl_ptr = reinterpret_cast<ctrl_t*>(old_ctrl);
 
     groups *= 2;
-    size_t new_total_size =
-        align_up(capacity() * sizeof(uint8_t), alignof(T)) + capacity() * sizeof(T);
+
+    size_t slot_offset = align_up(capacity() * sizeof(ctrl_t), alignof(T));
+    size_t new_total_size = slot_offset + capacity() * sizeof(T);
     buffer = operator new(new_total_size);
-    slots = slots = static_cast<char*>(buffer) + capacity();
+    slots = static_cast<char*>(buffer) + slot_offset;
     std::memset(buffer, static_cast<int8_t>(ctrl_t::kEmpty), capacity());
     size = 0;
 
     for (size_t i = 0; i < old_capacity; ++i) {
       if ((int8_t)old_ctrl_ptr[i] >= 0) {
-        insert(old_slots_ptr[i]);
+        insert(std::move(old_slots_ptr[i]));
+        old_slots_ptr[i].~T();
       }
     }
 
@@ -242,7 +265,7 @@ public:
   void print() {
     std::cout << "Metadata : " << std::endl;
     for (auto i = 0; i < capacity(); ++i) {
-      std::cout << (int)*(uint8_t*)((uint8_t*)buffer + i * sizeof(uint8_t)) << ' ';
+      std::cout << (int)*(uint8_t*)((uint8_t*)buffer + i * sizeof(ctrl_t)) << ' ';
     }
     std::cout << std::endl;
 
