@@ -20,6 +20,19 @@ enum class ctrl_t : int8_t {
                    // 0b0... > 0 - Full
 };
 
+// SplitMix64 Written in 2015 by Sebastiano Vigna (vigna@acm.org)
+// To the extent possible under law, the author has dedicated all copyright
+// and related and neighboring rights to this software to the public domain
+// worldwide.
+// Permission to use, copy, modify, and/or distribute this software for any
+// purpose with or without fee is hereby granted.
+uint64_t mix(uint64_t x) {
+  uint64_t z = (x += 0x9e3779b97f4a7c15);
+  z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;
+  z = (z ^ (z >> 27)) * 0x94d049bb133111eb;
+  return z ^ (z >> 31);
+}
+
 struct Group {
   __m128i ctrl;
 
@@ -140,8 +153,12 @@ public:
     return static_cast<T*>(slots);
   }
 
+  size_t hash_element(const T& value) {
+    return mix(std::hash<T>{}(value));
+  }
+
   iterator find(T value) {
-    size_t hash = std::hash<T>{}(value);
+    size_t hash = hash_element(value);
     size_t h1 = H1(hash);
     size_t h2 = H2(hash);
     size_t group = h1 & (groups - 1);
@@ -183,7 +200,7 @@ public:
     if (is_already_in != end()) {
       return is_already_in;
     }
-    size_t hash = std::hash<T>{}(value);
+    size_t hash = hash_element(value);
     size_t h1 = H1(hash);
     size_t h2 = H2(hash);
     if (size > capacity() * 0.85) {
