@@ -65,7 +65,7 @@ private:
   size_t groups;
   void* buffer;  // backing array
   void* slots;   // reference to the slots array
-  const double LOAD_FACTOR = 0.85;
+  const double LOAD_FACTOR = 0.875;
 
   size_t align_up(size_t n, size_t alignment) {
     // n + (a-1) mod a
@@ -180,7 +180,7 @@ public:
         // std::cout << "Not a full group" << std::endl;
         return end();
       }
-      group = (group + 1) % groups;
+      group = (group + 1) & (groups - 1);
     }
   }
 
@@ -218,7 +218,7 @@ public:
       if (mask != 0) {
         break;
       }
-      group = (group + 1) % groups;
+      group = (group + 1) & (groups - 1);
     }
 
     int i = __builtin_ctz(mask);
@@ -239,7 +239,8 @@ public:
     size_t offset = index % 16;
 
     Group g{ctrl_() + group * 16};
-    ctrl_()[group * 16 + offset] = g.MaskEmpty() ? ctrl_t::kEmpty : ctrl_t::kDeleted;
+    // Earlier: ctrl_()[group * 16 + offset] = g.MaskEmpty() ? ctrl_t::kEmpty : ctrl_t::kDeleted;
+    ctrl_()[group * 16 + offset] = ctrl_t::kDeleted;
     it.ptr->~T();
   }
 
