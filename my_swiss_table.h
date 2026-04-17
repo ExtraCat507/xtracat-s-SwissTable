@@ -65,6 +65,7 @@ private:
   size_t groups;
   void* buffer;  // backing array
   void* slots;   // reference to the slots array
+  const double LOAD_FACTOR = 0.85;
 
   size_t align_up(size_t n, size_t alignment) {
     // n + (a-1) mod a
@@ -203,7 +204,7 @@ public:
     size_t hash = hash_element(value);
     size_t h1 = H1(hash);
     size_t h2 = H2(hash);
-    if (size > capacity() * 0.85) {
+    if (size > capacity() * LOAD_FACTOR) {
       grow();
       return insert(value);
     }
