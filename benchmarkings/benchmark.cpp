@@ -134,7 +134,7 @@ void benchmark_type(ofstream& file, const string& type_name, Generator gen) {
 
 // ------------------ Main ------------------
 int main() {
-  ofstream file("benchmark.csv");
+  ofstream file("./results/benchmark.csv");
 
   file << "structure,type,size,insert_us,find_us,erase_us\n";
 
