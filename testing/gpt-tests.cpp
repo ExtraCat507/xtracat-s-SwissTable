@@ -3,7 +3,7 @@
 #include <iostream>
 #include <vector>
 
-#include "my_swiss_table.h"
+#include "../my_swiss_table.h"
 
 using namespace std;
 

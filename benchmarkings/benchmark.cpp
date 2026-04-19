@@ -51,7 +51,7 @@ vector<string> gen_string(size_t n) {
 // ------------------ Benchmark Function ------------------
 template <typename T, typename Generator>
 void benchmark_type(ofstream& file, const string& type_name, Generator gen) {
-  vector<size_t> sizes = {1000, 5000, 10000, 50000, 100000};
+  vector<size_t> sizes = {1000, 5000, 10000, 50000, 100000, 1000000, 10000000};
 
   for (auto n : sizes) {
     auto data = gen(n);
@@ -121,7 +121,7 @@ void benchmark_type(ofstream& file, const string& type_name, Generator gen) {
           s.erase(x);
       });
 
-      file << "MyStructure," << type_name << "," << n << "," << insert_t << "," << find_t << ","
+      file << "SwissTable," << type_name << "," << n << "," << insert_t << "," << find_t << ","
            << erase_t << "\n";
 
       // file << "MyStructure," << type_name << "," << n << "," << insert_t << "," << find_t << ","
