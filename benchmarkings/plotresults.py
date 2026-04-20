@@ -6,7 +6,7 @@ import seaborn as sns
 # Load data from CSV file
 # -----------------------------
 # Put your benchmark data into benchmark.csv
-df = pd.read_csv("benchmark.csv")
+df = pd.read_csv("./results/benchmark.csv")
 
 # -----------------------------
 # Settings
